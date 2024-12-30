@@ -35,7 +35,7 @@ cc_library(
     hdrs = ["parser_support.h"],
     visibility = ["//visibility:public"],
     deps = [
-        "@com_google_absl//absl/strings:str_format",
+        "@abseil-cpp//absl/strings:str_format",
     ],
 )
 
@@ -45,7 +45,7 @@ cc_test(
     srcs = ["parser_support_test.cc"],
     deps = [
         ":parser_support",
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
