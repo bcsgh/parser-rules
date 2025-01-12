@@ -25,7 +25,21 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""Bazel/skylark rules for wrapping Flex/Bison builds."""
+"""
+# Bazel/skylark rules for wrapping Flex/Bison builds.
+
+## `MODULE.bazel`
+
+```
+bazel_dep(
+    name = "com_github_bcsgh_parser_rules",
+    version = ...,
+)
+
+
+register_toolchains("@com_github_bcsgh_parser_rules//parser:linux_flex_bison")
+```
+"""
 
 def _genlex_impl(ctx):
     _PARSER = ctx.toolchains[":toolchain_type"].parser_gen_info

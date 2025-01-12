@@ -25,6 +25,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+exports_files(["parser.bzl"])
+
 load(":parser.bzl", "parser_toolchain")
 
 test_suite(name = "ci")
