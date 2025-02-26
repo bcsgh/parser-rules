@@ -23,4 +23,18 @@ bazel_dep(
     version = "1.15.2",
 )
 
+bazel_dep(
+    name = "gnu-bison",
+    version = "3.8.2",
+)
+
+bazel_dep(
+    name = "flex",
+    version = "2.6.1",
+)
+
+"""
 register_toolchains("//parser:linux_flex_bison")
+"""
+register_toolchains("//parser:build_flex_bison")
+#"""

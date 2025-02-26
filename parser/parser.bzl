@@ -52,11 +52,15 @@ def _genlex_impl(ctx):
     args.add("--header-file=%s" % h.path)
     args.add_all(ctx.files.src)
 
+    inputs = [t.files for t in _PARSER.lex_deps]
     ctx.actions.run(
-        inputs=depset(ctx.files.src + ctx.files.data),
+        mnemonic = "GenerateLexer",
+        inputs=depset(ctx.files.src + ctx.files.data, transitive=inputs),
         outputs=[cc, h],
+        env=_PARSER.lex_env,
         executable=_PARSER.lex_gen,
         arguments = [args],
+        tools = _PARSER.lex_tools,
     )
 
     return [DefaultInfo(
@@ -133,11 +137,15 @@ def _genyacc_impl(ctx):
         args.add("--report-file=%s" % rf.path)
 
     # Do it.
+    inputs = [t.files for t in _PARSER.parse_deps]
     ctx.actions.run(
-        inputs=depset(ctx.files.src + ctx.files.data),
+        mnemonic = "GenerateParser",
+        inputs=depset(ctx.files.src + ctx.files.data, transitive=inputs),
         outputs=outs,
+        env=_PARSER.parse_env,
         executable=_PARSER.parse_gen,
         arguments = [args],
+        tools = _PARSER.parse_tools,
     )
 
     return [DefaultInfo(
@@ -198,22 +206,81 @@ ParserGenInfo = provider(
 
     fields = [
         "lex_gen",
+        "lex_tools",
+        "lex_env",
+        "lex_deps",
         "parse_gen",
+        "parse_tools",
+        "parse_env",
+        "parse_deps",
     ],
 )
 
 def _parser_toolchain_impl(ctx):
+    if (not ctx.attr.lex_gen) == (not ctx.attr.lex_target):
+        fail("Exactly one of lex_gen or lex_target must be set")
+    if (not ctx.attr.parse_gen) == (not ctx.attr.parse_target):
+        fail("Exactly one of parse_gen or parse_target must be set")
+
+    # configure_make() seems to produce mutiple outputs; filter for one file.
+    def filter(bin):
+        files = [x for x in bin.files.to_list() if not x.is_directory]
+        if len(files) != 1:
+            fail("Target requiered exactly one file:", files)
+        return files[0].path
+
+    def make_env(e, tar, X):
+        ws = tar
+        return dict([
+            (k, ctx.expand_location(v, X).format(workspace_root=ws))
+            for k, v in e.items()
+        ])
+
+    if ctx.attr.lex_gen:
+        lex = ctx.attr.lex_gen
+        lex_tools = []
+        lex_env = make_env(ctx.attr.lex_env, None, ctx.attr.lex_deps)
+    if ctx.attr.lex_target:
+        lex = filter(ctx.attr.lex_target)
+        lex_tools = [ctx.attr.lex_target.files]
+        lex_env = make_env(ctx.attr.lex_env,
+                           ctx.attr.lex_target.label.workspace_root,
+                           ctx.attr.lex_deps + [ctx.attr.lex_target])
+
+    if ctx.attr.parse_gen:
+        parse = ctx.attr.parse_gen
+        parse_tools = []
+        parse_env = make_env(ctx.attr.parse_env, None, ctx.attr.parse_deps)
+    if ctx.attr.parse_target:
+        parse = filter(ctx.attr.parse_target)
+        parse_tools = [ctx.attr.parse_target.files]
+        parse_env = make_env(ctx.attr.parse_env,
+                             ctx.attr.parse_target.label.workspace_root,
+                             ctx.attr.parse_deps + [ctx.attr.parse_target])
+
     return [platform_common.ToolchainInfo(
         parser_gen_info = ParserGenInfo(
-            lex_gen = ctx.attr.lex_gen,
-            parse_gen = ctx.attr.parse_gen,
+            lex_gen = lex,
+            lex_tools = depset([], transitive=lex_tools),
+            lex_env = ctx.attr.lex_env,
+            lex_deps = ctx.attr.lex_deps,
+            parse_gen = parse,
+            parse_tools = depset([], transitive=parse_tools),
+            parse_env = parse_env,
+            parse_deps = ctx.attr.parse_deps,
         ),
     )]
 
 parser_toolchain = rule(
     implementation = _parser_toolchain_impl,
     attrs = {
-        "lex_gen": attr.string(mandatory=True),
-        "parse_gen": attr.string(mandatory=True),
+        "lex_gen": attr.string(),
+        "lex_target": attr.label(),
+        "lex_env": attr.string_dict(),
+        "lex_deps": attr.label_list(allow_files=True),
+        "parse_gen": attr.string(),
+        "parse_target": attr.label(),
+        "parse_env": attr.string_dict(),
+        "parse_deps": attr.label_list(allow_files=True),
     },
 )

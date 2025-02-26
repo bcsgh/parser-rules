@@ -67,3 +67,18 @@ toolchain(
     toolchain = ":linux_local_flex_bison_toolchain",
     toolchain_type = ":toolchain_type",
 )
+
+parser_toolchain(
+    name = "build_flex_bison_toolchain",
+    lex_target = "@flex//:flex",
+    parse_target = "@gnu-bison//:bison",
+    parse_deps = ["@gnu-bison//:bison-deps"],
+    parse_env = {"BISON_PKGDATADIR": "./{workspace_root}/data"},
+)
+
+toolchain(
+    name = "build_flex_bison",
+    target_compatible_with = [], # Output is OS/CPU agnostic
+    toolchain = ":build_flex_bison_toolchain",
+    toolchain_type = ":toolchain_type",
+)
