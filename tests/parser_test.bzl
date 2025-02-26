@@ -83,11 +83,21 @@ def parser_suite(name):
         report_file = "parser.output",
     )
 
+    build_test(
+        name = "lex_build_test",
+        targets = [":lexer"],
+    )
+
     genlex(
         name = "lexer",
         src = "lexer.l",
         cc = "lexer.yy.cc",
         h = "lexer.yy.h",
+    )
+
+    build_test(
+        name = "parser_build_test",
+        targets = [":parser"],
     )
 
     native.cc_library(
@@ -109,7 +119,7 @@ def parser_suite(name):
     )
 
     build_test(
-        name = "parser_build_test",
+        name = "lib_build_test",
         targets = [
             ":parser_build",
         ],
@@ -129,7 +139,9 @@ def parser_suite(name):
     native.test_suite(
         name = name,
         tests = [
+            ":lex_build_test",
             ":parser_build_test",
+            ":lib_build_test",
             ":genyacc_contents_test",
             ":genlex_contents_test",
         ],
