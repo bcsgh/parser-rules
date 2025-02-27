@@ -45,7 +45,7 @@ def _genlex_impl(ctx):
     _PARSER = ctx.toolchains[":toolchain_type"].parser_gen_info
 
     cc = ctx.actions.declare_file(ctx.attr.cc.name)
-    h  = ctx.actions.declare_file(ctx.attr.h.name)
+    h = ctx.actions.declare_file(ctx.attr.h.name)
 
     args = ctx.actions.args()
     args.add("--outfile=%s" % cc.path)
@@ -55,41 +55,40 @@ def _genlex_impl(ctx):
     inputs = [t.files for t in _PARSER.lex_deps]
     ctx.actions.run(
         mnemonic = "GenerateLexer",
-        inputs=depset(ctx.files.src + ctx.files.data, transitive=inputs),
-        outputs=[cc, h],
-        env=_PARSER.lex_env,
-        executable=_PARSER.lex_gen,
+        inputs = depset(ctx.files.src + ctx.files.data, transitive = inputs),
+        outputs = [cc, h],
+        env = _PARSER.lex_env,
+        executable = _PARSER.lex_gen,
         arguments = [args],
         tools = _PARSER.lex_tools,
     )
 
     return [DefaultInfo(
-        runfiles=ctx.runfiles(files=ctx.files.src + ctx.files.data),
+        runfiles = ctx.runfiles(files = ctx.files.src + ctx.files.data),
     )]
 
 genlex = rule(
     doc = "Generate a lexer using flex.",
-
+    #
     implementation = _genlex_impl,
     attrs = {
         "src": attr.label(
-            doc="The root source file.",
-            allow_single_file=[".l"],
-            mandatory=True,
+            doc = "The root source file.",
+            allow_single_file = [".l"],
+            mandatory = True,
         ),
         "data": attr.label_list(
-            doc="Other files needed.",
-            allow_files=True,
-            default=[],
+            doc = "Other files needed.",
+            allow_files = True,
+            default = [],
         ),
-
         "cc": attr.output(
-            doc="The generated C++ source file.",
-            mandatory=True,
+            doc = "The generated C++ source file.",
+            mandatory = True,
         ),
         "h": attr.output(
-            doc="The generated C++ header file.",
-            mandatory=True,
+            doc = "The generated C++ header file.",
+            mandatory = True,
         ),
     },
     toolchains = [":toolchain_type"],
@@ -140,61 +139,58 @@ def _genyacc_impl(ctx):
     inputs = [t.files for t in _PARSER.parse_deps]
     ctx.actions.run(
         mnemonic = "GenerateParser",
-        inputs=depset(ctx.files.src + ctx.files.data, transitive=inputs),
-        outputs=outs,
-        env=_PARSER.parse_env,
-        executable=_PARSER.parse_gen,
+        inputs = depset(ctx.files.src + ctx.files.data, transitive = inputs),
+        outputs = outs,
+        env = _PARSER.parse_env,
+        executable = _PARSER.parse_gen,
         arguments = [args],
         tools = _PARSER.parse_tools,
     )
 
     return [DefaultInfo(
-        runfiles=ctx.runfiles(files=ctx.files.src + ctx.files.data),
+        runfiles = ctx.runfiles(files = ctx.files.src + ctx.files.data),
     )]
 
 genyacc = rule(
     doc = "Generate a paser using bison.",
-
+    #
     implementation = _genyacc_impl,
     attrs = {
         "src": attr.label(
-            doc="The root source file.",
-            allow_single_file=[".y"],
-            mandatory=True,
+            doc = "The root source file.",
+            allow_single_file = [".y"],
+            mandatory = True,
         ),
         "data": attr.label_list(
-            doc="Other files needed.",
-            allow_files=True,
-            default=[],
+            doc = "Other files needed.",
+            allow_files = True,
+            default = [],
         ),
-
         "cc": attr.output(
-            doc="The generated C++ source file.",
-            mandatory=True,
+            doc = "The generated C++ source file.",
+            mandatory = True,
         ),
         "h": attr.output(
-            doc="The generated C++ header file.",
-            mandatory=True,
+            doc = "The generated C++ header file.",
+            mandatory = True,
         ),
         "loc": attr.output(
-            doc="""The generated location header (if used).
+            doc = """The generated location header (if used).
               This can be manipulated in the .y file via `%define api.location.file`.""",
         ),
-
         "graph": attr.bool(
-            doc="Generate a state machine graph. (Depricated, use graph_file.)",
-            default=False,
+            doc = "Generate a state machine graph. (Depricated, use graph_file.)",
+            default = False,
         ),
         "report": attr.bool(
-            doc='Generate a "report" (`--verbose --report=all`). (Depricated, use report_file.)',
-            default=False,
+            doc = 'Generate a "report" (`--verbose --report=all`). (Depricated, use report_file.)',
+            default = False,
         ),
-
         "graph_file": attr.output(
-            doc="Generate a state machine graph.",
+            doc = "Generate a state machine graph.",
         ),
         "report_file": attr.output(
-            doc='Generate a "report" (`--verbose --report=all`).',
+            doc = 'Generate a "report" (`--verbose --report=all`).',
         ),
     },
     toolchains = [":toolchain_type"],
@@ -203,7 +199,7 @@ genyacc = rule(
 ## Parser generator Toolchain
 ParserGenInfo = provider(
     doc = "Information about how to invoke lexer and parser generators tools.",
-
+    #
     fields = [
         "lex_gen",
         "lex_tools",
@@ -232,7 +228,7 @@ def _parser_toolchain_impl(ctx):
     def make_env(e, tar, X):
         ws = tar
         return dict([
-            (k, ctx.expand_location(v, X).format(workspace_root=ws))
+            (k, ctx.expand_location(v, X).format(workspace_root = ws))
             for k, v in e.items()
         ])
 
@@ -243,9 +239,11 @@ def _parser_toolchain_impl(ctx):
     if ctx.attr.lex_target:
         lex = filter(ctx.attr.lex_target)
         lex_tools = [ctx.attr.lex_target.files]
-        lex_env = make_env(ctx.attr.lex_env,
-                           ctx.attr.lex_target.label.workspace_root,
-                           ctx.attr.lex_deps + [ctx.attr.lex_target])
+        lex_env = make_env(
+            ctx.attr.lex_env,
+            ctx.attr.lex_target.label.workspace_root,
+            ctx.attr.lex_deps + [ctx.attr.lex_target],
+        )
 
     if ctx.attr.parse_gen:
         parse = ctx.attr.parse_gen
@@ -254,18 +252,20 @@ def _parser_toolchain_impl(ctx):
     if ctx.attr.parse_target:
         parse = filter(ctx.attr.parse_target)
         parse_tools = [ctx.attr.parse_target.files]
-        parse_env = make_env(ctx.attr.parse_env,
-                             ctx.attr.parse_target.label.workspace_root,
-                             ctx.attr.parse_deps + [ctx.attr.parse_target])
+        parse_env = make_env(
+            ctx.attr.parse_env,
+            ctx.attr.parse_target.label.workspace_root,
+            ctx.attr.parse_deps + [ctx.attr.parse_target],
+        )
 
     return [platform_common.ToolchainInfo(
         parser_gen_info = ParserGenInfo(
             lex_gen = lex,
-            lex_tools = depset([], transitive=lex_tools),
+            lex_tools = depset([], transitive = lex_tools),
             lex_env = ctx.attr.lex_env,
             lex_deps = ctx.attr.lex_deps,
             parse_gen = parse,
-            parse_tools = depset([], transitive=parse_tools),
+            parse_tools = depset([], transitive = parse_tools),
             parse_env = parse_env,
             parse_deps = ctx.attr.parse_deps,
         ),
@@ -277,10 +277,10 @@ parser_toolchain = rule(
         "lex_gen": attr.string(),
         "lex_target": attr.label(),
         "lex_env": attr.string_dict(),
-        "lex_deps": attr.label_list(allow_files=True),
+        "lex_deps": attr.label_list(allow_files = True),
         "parse_gen": attr.string(),
         "parse_target": attr.label(),
         "parse_env": attr.string_dict(),
-        "parse_deps": attr.label_list(allow_files=True),
+        "parse_deps": attr.label_list(allow_files = True),
     },
 )

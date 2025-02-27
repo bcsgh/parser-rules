@@ -36,5 +36,5 @@ test_suite(
 
 ######## genlex/genyacc
 parser_suite(
-    name = "parser_test"
+    name = "parser_test",
 )

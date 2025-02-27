@@ -25,9 +25,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-exports_files(["parser.bzl"])
-
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load(":parser.bzl", "parser_toolchain")
+
+exports_files(["parser.bzl"])
 
 test_suite(name = "ci")
 
@@ -63,7 +65,7 @@ toolchain(
     name = "linux_flex_bison",
     # Blindly asssume this is avalable if registered.
     # exec_compatible_with = ["@platforms//os:linux"], # TODO Would this be more correct?
-    target_compatible_with = [], # Output is OS/CPU agnostic
+    target_compatible_with = [],  # Output is OS/CPU agnostic
     toolchain = ":linux_local_flex_bison_toolchain",
     toolchain_type = ":toolchain_type",
 )
@@ -71,14 +73,14 @@ toolchain(
 parser_toolchain(
     name = "build_flex_bison_toolchain",
     lex_target = "@flex//:flex",
-    parse_target = "@gnu-bison//:bison",
     parse_deps = ["@gnu-bison//:bison-deps"],
     parse_env = {"BISON_PKGDATADIR": "./{workspace_root}/data"},
+    parse_target = "@gnu-bison//:bison",
 )
 
 toolchain(
     name = "build_flex_bison",
-    target_compatible_with = [], # Output is OS/CPU agnostic
+    target_compatible_with = [],  # Output is OS/CPU agnostic
     toolchain = ":build_flex_bison_toolchain",
     toolchain_type = ":toolchain_type",
 )

@@ -25,9 +25,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-load("@bazel_skylib//lib:unittest.bzl", "asserts", "analysistest")
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@com_github_bcsgh_build_test//build_test:build.bzl", "build_test")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//parser:parser.bzl", "genlex", "genyacc")
 
 ##### SUCCESS case
@@ -36,18 +37,20 @@ def _genyacc_contents_test_impl(ctx):
     env = analysistest.begin(ctx)
 
     target_under_test = analysistest.target_under_test(env)
-    asserts.set_equals(env,
-      sets.make([
-          "parser.tab.cc",
-          "parser.tab.h",
-          "parser.output",
-          "parser.dot",
-          "location.hh",
-      ]),
-      sets.make([
-          f.basename
-          for f in target_under_test[DefaultInfo].files.to_list()
-      ]))
+    asserts.set_equals(
+        env,
+        sets.make([
+            "parser.tab.cc",
+            "parser.tab.h",
+            "parser.output",
+            "parser.dot",
+            "location.hh",
+        ]),
+        sets.make([
+            f.basename
+            for f in target_under_test[DefaultInfo].files.to_list()
+        ]),
+    )
     return analysistest.end(env)
 
 genyacc_contents_test = analysistest.make(_genyacc_contents_test_impl)
@@ -56,15 +59,17 @@ def _genlex_contents_test_impl(ctx):
     env = analysistest.begin(ctx)
 
     target_under_test = analysistest.target_under_test(env)
-    asserts.set_equals(env,
-      sets.make([
-          "lexer.yy.cc",
-          "lexer.yy.h",
-      ]),
-      sets.make([
-          f.basename
-          for f in target_under_test[DefaultInfo].files.to_list()
-      ]))
+    asserts.set_equals(
+        env,
+        sets.make([
+            "lexer.yy.cc",
+            "lexer.yy.h",
+        ]),
+        sets.make([
+            f.basename
+            for f in target_under_test[DefaultInfo].files.to_list()
+        ]),
+    )
     return analysistest.end(env)
 
 genlex_contents_test = analysistest.make(_genlex_contents_test_impl)
@@ -100,7 +105,7 @@ def parser_suite(name):
         targets = [":parser"],
     )
 
-    native.cc_library(
+    cc_library(
         name = "parser_build",
         srcs = [
             ":lexer",
